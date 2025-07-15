@@ -1,0 +1,192 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import type { User, Session } from '@supabase/supabase-js';
+import { Listing } from '../types';
+import { ListingGrid } from './ListingGrid';
+import { supabase } from '../services/supabaseClient';
+import { Modal } from './Modal';
+import { ListingForm } from './ListingForm';
+import { PlusIcon, PencilIcon, TrashIcon, DiamondIcon } from './icons';
+import { SubscriptionPlans } from './SubscriptionPlans';
+
+interface UserDashboardProps {
+  user: User;
+  session: Session;
+  savedListings: Listing[];
+  onSaveToggle: (listingId: string) => void;
+  onViewDetails: (listing: Listing) => void;
+}
+
+const MyListingsTab: React.FC<{ user: User, onViewDetails: (l: Listing) => void }> = ({ user, onViewDetails }) => {
+  const [myListings, setMyListings] = useState<Listing[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingListing, setEditingListing] = useState<Listing | null>(null);
+
+  const fetchMyListings = useCallback(async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase.from('listings').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+    if (error) {
+      console.error('Error fetching user listings:', error);
+    } else {
+      setMyListings(data as Listing[]);
+    }
+    setIsLoading(false);
+  }, [user.id]);
+
+  useEffect(() => {
+    fetchMyListings();
+  }, [fetchMyListings]);
+
+  const handleEdit = (listing: Listing) => {
+    setEditingListing(listing);
+    setIsModalOpen(true);
+  };
+  
+  const handleDelete = async (listingId: string) => {
+    if (window.confirm('Are you sure you want to delete this listing?')) {
+      const { error } = await supabase.from('listings').delete().match({ id: listingId });
+      if (error) {
+        alert(`Error deleting listing: ${error.message}`);
+      } else {
+        fetchMyListings();
+      }
+    }
+  };
+  
+  const handleSave = async (listingData: Omit<Listing, 'id' | 'lat' | 'lon'> & { id?: string }) => {
+    // A real app would get lat/lon from an address, here we use random values for simplicity.
+    const dataToSave = {
+      ...listingData,
+      lat: listingData.lat || (Math.random() * 180 - 90),
+      lon: listingData.lon || (Math.random() * 360 - 180),
+      user_id: user.id
+    };
+
+    const { error } = await supabase.from('listings').upsert(dataToSave);
+    
+    if (error) {
+      alert(`Error saving listing: ${error.message}`);
+    } else {
+      setIsModalOpen(false);
+      fetchMyListings();
+    }
+  };
+
+  if (isLoading) {
+    return (
+        <div className="flex justify-center items-center p-16">
+            <DiamondIcon className="h-10 w-10 text-violet-500 animate-pulse" />
+        </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+        {myListings.length > 0 ? (
+            <div className="bg-white shadow-md rounded-lg overflow-hidden border border-slate-200">
+                <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200">
+                    <thead className="bg-slate-50">
+                    <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Price</th>
+                        <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
+                    </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-slate-200">
+                    {myListings.map((listing) => (
+                        <tr key={listing.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            <button onClick={() => onViewDetails(listing)} className="text-sm font-medium text-slate-900 hover:text-violet-600">{listing.title}</button>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${listing.price.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            <button onClick={() => handleEdit(listing)} className="text-violet-600 hover:text-violet-900 p-1" title="Edit">
+                                <PencilIcon className="w-5 h-5"/>
+                            </button>
+                            <button onClick={() => handleDelete(listing.id)} className="text-red-600 hover:text-red-900 p-1" title="Delete">
+                                <TrashIcon className="w-5 h-5"/>
+                            </button>
+                        </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        ) : (
+            <div className="text-center py-16 px-6 bg-white rounded-lg border border-slate-200 shadow-sm">
+                <h3 className="text-xl font-semibold text-slate-800">You haven't created any listings yet.</h3>
+                <p className="mt-2 text-slate-500">Click "Add Listing" in the header to get started.</p>
+            </div>
+        )}
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingListing ? 'Edit Listing' : 'Add New Listing'}>
+          <ListingForm listing={editingListing} onSave={handleSave} onCancel={() => setIsModalOpen(false)} />
+      </Modal>
+    </div>
+  );
+}
+
+export const UserDashboard: React.FC<UserDashboardProps> = ({ user, savedListings, onSaveToggle, onViewDetails, session }) => {
+  const [activeTab, setActiveTab] = useState('my-listings');
+  const savedListingIds = savedListings.map(l => l.id);
+
+  const tabs = [
+    { id: 'my-listings', label: 'My Listings' },
+    { id: 'saved', label: 'Saved Listings' },
+    { id: 'subscription', label: 'My Subscription' },
+  ];
+
+  return (
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold text-slate-900">My Dashboard</h1>
+        <p className="text-slate-500 mt-1">Welcome back, <span className="font-medium text-slate-700">{user.email}</span></p>
+      </div>
+
+      <div className="border-b border-slate-200 mb-8">
+        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`${
+                activeTab === tab.id
+                  ? 'border-violet-500 text-violet-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      <div>
+        {activeTab === 'my-listings' && <MyListingsTab user={user} onViewDetails={onViewDetails} />}
+        {activeTab === 'saved' && (
+            savedListings.length > 0 ? (
+                <ListingGrid 
+                    listings={savedListings} 
+                    isLoading={false} 
+                    onViewDetails={onViewDetails}
+                    savedListingIds={savedListingIds}
+                    onSaveToggle={onSaveToggle}
+                    session={session}
+                />
+            ) : (
+                <div className="text-center py-16 px-6 bg-white rounded-lg border border-slate-200 shadow-sm">
+                    <h3 className="text-xl font-semibold text-slate-800">You have no saved listings.</h3>
+                    <p className="mt-2 text-slate-500">Browse our collection and click the bookmark icon to save your favorites.</p>
+                </div>
+            )
+        )}
+        {activeTab === 'subscription' && <SubscriptionPlans />}
+      </div>
+    </div>
+  );
+};

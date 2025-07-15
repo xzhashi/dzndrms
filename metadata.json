@@ -1,0 +1,8 @@
+{
+  "name": "Dozen Dreams",
+  "description": "A premier SaaS platform for browsing and listing luxury cars, exclusive real estate properties, and grand farm estates available for sale or rent. Fulfill your dozen dreams with us.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "prompt": ""
+}

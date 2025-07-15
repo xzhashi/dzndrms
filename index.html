@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dozen Dreams - The Pinnacle of Luxury</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --violet-500: #8b5cf6;
+        --violet-600: #7c3aed;
+        --slate-50: #f8fafc;
+        --slate-800: #1e293b;
+        --slate-900: #0f172a;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      /* For custom scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #e2e8f0; /* bg-slate-200 */
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #a78bfa; /* violet-400 */
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--violet-500);
+      }
+      /* Simple fade-in animation */
+      @keyframes fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
+      }
+      /* Popup scale-in animation */
+       @keyframes scale-in {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      .animate-scale-in {
+        animation: scale-in 0.2s ease-out forwards;
+      }
+      /* Animation for explore menu */
+      @keyframes fade-in-up {
+        from { opacity: 0; transform: translateY(15px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      .animate-fade-in-up {
+        animation: fade-in-up 0.2s ease-out forwards;
+      }
+      /* Leaflet custom light popup */
+      .leaflet-popup-content-wrapper {
+        background-color: #ffffff;
+        color: var(--slate-800);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+      .leaflet-popup-content {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .leaflet-popup-tip {
+        background-color: #ffffff;
+      }
+      .leaflet-container a.leaflet-popup-close-button {
+        color: #64748b; /* text-slate-500 */
+      }
+      .leaflet-container a.leaflet-popup-close-button:hover {
+        color: var(--slate-900);
+      }
+      /* Hide scrollbar for category scroller */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+      }
+      /* Animated gradient for active nav pill */
+      @keyframes gradient-animation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      .animated-gradient-pill {
+        background: linear-gradient(-45deg, #a78bfa, #8b5cf6, #7c3aed, #a78bfa);
+        background-size: 400% 400%;
+        animation: gradient-animation 6s ease infinite;
+      }
+      .animated-gradient-button {
+        background: linear-gradient(-45deg, var(--violet-500), #a855f7, var(--violet-600), #c084fc);
+        background-size: 400% 400%;
+        animation: gradient-animation 8s ease infinite;
+        transition: all 0.15s ease-out;
+        border-radius: 9999px; /* pill shape */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1), inset 0 -3px 0 rgba(0,0,0,0.2);
+        transform: translateY(0);
+      }
+      .animated-gradient-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15), inset 0 -3px 0 rgba(0,0,0,0.2);
+      }
+      .animated-gradient-button:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1), inset 0 2px 2px rgba(0,0,0,0.2);
+      }
+      /* Custom range slider thumb with gradient */
+      input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background-image: linear-gradient(to right, var(--violet-500), var(--violet-600));
+        cursor: pointer;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        margin-top: -7px; /* Position thumb correctly */
+      }
+
+      input[type=range]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background-image: linear-gradient(to right, var(--violet-500), var(--violet-600));
+        cursor: pointer;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 5px rgba(0,0,0,0.2);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.50.5",
+    "@google/genai": "https://esm.sh/@google/genai@^1.9.0",
+    "react-leaflet": "https://esm.sh/react-leaflet@^5.0.0",
+    "leaflet": "https://esm.sh/leaflet@^1.9.4"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-slate-50 text-slate-800">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
