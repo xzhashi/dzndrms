@@ -15,7 +15,7 @@ export const ContactUsPage: React.FC = () => {
     }
 
     return (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in pt-24">
             <div className="bg-white py-20 px-4 text-center shadow-sm border-b border-slate-200">
                 <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">Get In Touch</h1>
                 <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-slate-600">

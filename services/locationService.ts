@@ -1,6 +1,4 @@
-
-
-import { GeocodeResponse } from '../types';
+import { GeocodeResponse, LocationSuggestion } from '../types';
 
 export const reverseGeocode = async (lat: number, lon: number): Promise<GeocodeResponse> => {
     try {
@@ -24,7 +22,6 @@ export const reverseGeocode = async (lat: number, lon: number): Promise<GeocodeR
 
 export const fetchLocationByIp = async (): Promise<GeocodeResponse> => {
     try {
-        // Switched to a free, HTTPS-enabled IP geolocation service
         const response = await fetch('https://ipapi.co/json/');
         if (!response.ok) {
             throw new Error(`IP API request failed with status: ${response.status}`);
@@ -35,12 +32,27 @@ export const fetchLocationByIp = async (): Promise<GeocodeResponse> => {
         }
         return {
             city: data.city || '',
-            // Use correct fields from the new API response
             state: data.region || data.country_name || '',
         };
     } catch (error) {
         console.error("Error fetching location from IP API:", error);
-        // Re-throw the error so it can be handled by the caller
         throw new Error("Failed to fetch IP-based location");
+    }
+};
+
+export const searchLocations = async (query: string): Promise<LocationSuggestion[]> => {
+    if (!query || query.trim().length < 3) {
+        return [];
+    }
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch from Nominatim search API');
+        }
+        const data: LocationSuggestion[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error during location search:", error);
+        return [];
     }
 };

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { Listing, ListingType, FiltersState, GeocodeResponse, ListingCategory } from '../types';
@@ -30,11 +29,15 @@ interface SearchPageProps {
   setFilters: React.Dispatch<React.SetStateAction<FiltersState>>;
   onOpenFilters: () => void;
   userLocation: GeocodeResponse | null;
+  categoryMaps: {
+    nameToId: Record<string, number>;
+    idToName: Record<number, string>;
+  };
 }
 
 export const SearchPage: React.FC<SearchPageProps> = ({ 
     session, savedListingIds, onSaveToggle, onViewDetails,
-    filters, setFilters, onOpenFilters, userLocation
+    filters, setFilters, onOpenFilters, userLocation, categoryMaps
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [listings, setListings] = useState<Listing[]>([]);
@@ -43,6 +46,10 @@ export const SearchPage: React.FC<SearchPageProps> = ({
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
     const performSearch = useCallback(async () => {
+        if (Object.keys(categoryMaps.nameToId).length === 0) {
+            setIsLoading(false);
+            return;
+        };
         setIsLoading(true);
 
         const effectiveLocation = filters.location || (userLocation ? `${userLocation.city}, ${userLocation.state}` : '');
@@ -56,7 +63,10 @@ export const SearchPage: React.FC<SearchPageProps> = ({
                 .lte('price', filters.priceRange[1]);
             
             if (filters.categories.length > 0) {
-                query = query.in('category', filters.categories);
+                 const categoryIds = filters.categories.map(name => categoryMaps.nameToId[name]).filter(Boolean);
+                if (categoryIds.length > 0) {
+                    query = query.in('category_id', categoryIds);
+                }
             }
     
             if (effectiveLocation.trim() !== '') {
@@ -77,7 +87,14 @@ export const SearchPage: React.FC<SearchPageProps> = ({
                 console.error("Search error:", error);
                 throw error;
             }
-            setListings((data as Listing[]) || []);
+
+            const listingsWithCategoryName = data.map(l => ({
+                ...l,
+                imageUrl: l.image_url,
+                category: categoryMaps.idToName[l.category_id] || '',
+            }));
+
+            setListings((listingsWithCategoryName as Listing[]) || []);
 
         } catch (error) {
             console.error("Failed to perform search", error);
@@ -85,7 +102,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
         } finally {
             setIsLoading(false);
         }
-    }, [debouncedSearchTerm, filters, userLocation]);
+    }, [debouncedSearchTerm, filters, userLocation, categoryMaps]);
 
     useEffect(() => {
         // Automatically search when filters or search term changes
@@ -110,9 +127,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({
     const inactiveBtnClasses = "bg-white text-slate-700 hover:bg-slate-100";
 
     return (
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-36 pb-12 animate-fade-in">
             {/* Search Bar */}
-            <div className="sticky top-4 z-20 mb-8 max-w-3xl mx-auto">
+            <div className="sticky top-24 z-20 mb-8 max-w-3xl mx-auto">
                 <div className="flex items-center gap-2 p-1.5 bg-white/70 backdrop-blur-xl rounded-full shadow-lg border border-slate-200">
                     <div className="flex-shrink-0 flex items-center gap-1.5 w-auto">
                         <button
@@ -151,7 +168,6 @@ export const SearchPage: React.FC<SearchPageProps> = ({
             <div className="mb-12 max-w-4xl mx-auto">
                 <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
                     {categories.map((cat) => {
-                        const IconComponent = cat.icon;
                         const isSelected = filters.categories.includes(cat.id);
                         return (
                             <button
@@ -163,7 +179,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
                                         : 'bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm border-slate-200'
                                     }`}
                             >
-                                <IconComponent className="w-7 h-7" />
+                                <img src={cat.imageUrl} alt={cat.label} className="w-7 h-7 rounded-full object-cover" />
                                 <span className="text-xs font-semibold text-center">{cat.label}</span>
                             </button>
                         );

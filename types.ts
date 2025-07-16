@@ -1,6 +1,3 @@
-
-
-
 export enum ListingType {
   SALE = 'SALE',
   RENT = 'RENT',
@@ -35,6 +32,12 @@ export enum ListingCategory {
   TOUR_BOOK = 'TOUR_BOOK',
 }
 
+export interface Amenity {
+    id: 'pool' | 'gym' | 'wifi' | 'garage';
+    label: string;
+    icon: React.FC<React.SVGProps<SVGSVGElement>>;
+}
+
 export interface BaseListing {
   id: string;
   title: string;
@@ -47,6 +50,7 @@ export interface BaseListing {
   lat: number;
   lon: number;
   user_id?: string;
+  is_featured?: boolean;
 }
 
 export interface CarListing extends BaseListing {
@@ -105,7 +109,10 @@ export type Page = 'listings' | 'locations' | 'dashboard' | 'messages' | 'about'
 export interface UserProfile {
     id: string;
     fullName: string;
-    role: 'user' | 'admin';
+    role: 'user' | 'agent' | 'admin';
+    subscription_plan?: 'basic' | 'pro' | 'premium';
+    interests?: ListingCategory[];
+    budget?: number;
 }
 
 export interface SavedListing {
@@ -117,4 +124,71 @@ export interface SavedListing {
 export interface GeocodeResponse {
     city: string;
     state: string; // Could be state, province, or country
+}
+
+// For storing extra data in the description field
+export interface ExtendedListingData {
+  image_urls?: string[];
+  video_url?: string;
+  reel_url?: string;
+  amenities?: string[];
+}
+
+export interface BookingData {
+  listingId: string;
+  listingTitle: string;
+  fullName: string;
+  email: string;
+  guests: number;
+  checkIn: Date;
+  checkOut: Date;
+}
+
+export interface LocationSuggestion {
+    place_id: number;
+    licence: string;
+    osm_type: string;
+    osm_id: number;
+    boundingbox: [string, string, string, string];
+    lat: string;
+    lon: string;
+    display_name: string;
+    class: string;
+    type: string;
+    importance: number;
+    icon?: string;
+}
+
+export interface Message {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  is_read: boolean;
+  sender?: {
+      fullName: string;
+  }
+}
+
+export interface Conversation {
+  id: string;
+  listing_id: string;
+  buyer_id: string;
+  seller_id: string;
+  created_at: string;
+  updated_at: string;
+  
+  // Joined data
+  listings: {
+      title: string;
+      image_url: string;
+  };
+  profiles: { // The "other" user's profile
+      full_name: string;
+  }
+  // Manually added data
+  last_message?: string;
+  last_message_at?: string;
+  unread_count?: number;
 }

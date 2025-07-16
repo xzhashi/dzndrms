@@ -1,6 +1,6 @@
 import React from 'react';
 import { ListingCategory, ListingType } from '../types';
-import { SALE_CATEGORIES, RENT_CATEGORIES } from '../constants';
+import { SALE_CATEGORIES, BOOK_CATEGORIES } from '../constants';
 
 interface CategoryScrollerProps {
     listingType: ListingType;
@@ -9,13 +9,12 @@ interface CategoryScrollerProps {
 }
 
 export const CategoryScroller: React.FC<CategoryScrollerProps> = ({ listingType, selectedCategory, onCategorySelect }) => {
-    const categories = listingType === ListingType.SALE ? SALE_CATEGORIES : RENT_CATEGORIES;
+    const categories = listingType === ListingType.SALE ? SALE_CATEGORIES : BOOK_CATEGORIES;
 
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-row items-center justify-center gap-4 overflow-x-auto pb-2 no-scrollbar">
+            <div className="flex flex-row items-center justify-start gap-4 overflow-x-auto pb-2 no-scrollbar">
                 {categories.map((cat) => {
-                    const IconComponent = cat.icon;
                     const isSelected = selectedCategory === cat.id;
                     return (
                         <button
@@ -29,7 +28,7 @@ export const CategoryScroller: React.FC<CategoryScrollerProps> = ({ listingType,
                             aria-pressed={isSelected}
                             aria-label={`Filter by ${cat.label}`}
                         >
-                            <IconComponent className="w-6 h-6" />
+                            <img src={cat.imageUrl} alt={cat.label} className="w-7 h-7 rounded-full object-cover" />
                             <span className={`text-xs font-medium whitespace-nowrap ${isSelected ? 'font-bold' : ''}`}>{cat.label}</span>
                              {isSelected && <div className="absolute bottom-0 w-8/12 h-[2px] bg-slate-900 rounded-full" />}
                         </button>

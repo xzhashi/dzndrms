@@ -1,29 +1,36 @@
+
+
+
 import React, { useState } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { ArrowRightIcon } from './icons';
-import { Page } from '../types';
+import { ArrowRightIcon, UserCircleIcon, UsersIcon } from './icons';
+import { Page, ListingType } from '../types';
+import { Button } from './Button';
 
 interface AuthPageProps {
-  onNavigate: (page: Page | 'login') => void;
+  onNavigate: (page: Page | 'login', listingType?: ListingType) => void;
 }
 
-const AuthImage = () => (
-    <div
-        className="hidden lg:block lg:col-span-1 bg-cover bg-center"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1589241066343-809333854b7e?q=80&w=1974&auto=format&fit=crop')" }}
-    >
-        <div className="w-full h-full bg-black/30"></div>
-    </div>
-);
+type AuthView = 'signin' | 'signup' | 'forgot_password';
+type UserRole = 'user' | 'agent';
 
 export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate }) => {
-    const [isSignUp, setIsSignUp] = useState(false);
+    const [view, setView] = useState<AuthView>('signin');
     const [loading, setLoading] = useState(false);
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [role, setRole] = useState<UserRole>('user');
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
+
+    const resetState = () => {
+        setFullName('');
+        setEmail('');
+        setPassword('');
+        setError(null);
+        setMessage(null);
+    };
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,19 +39,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate }) => {
         setMessage(null);
 
         try {
-            if (isSignUp) {
-                const { error } = await supabase.auth.signUp({ 
-                    email, 
+            if (view === 'signup') {
+                const { error } = await supabase.auth.signUp({
+                    email,
                     password,
                     options: {
                         data: {
                             full_name: fullName,
+                            role: role,
                         }
                     }
                 });
                 if (error) throw error;
                 setMessage('Success! Check your email for a confirmation link.');
-            } else {
+            } else { // signin
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 onNavigate('listings');
@@ -55,97 +63,137 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate }) => {
             setLoading(false);
         }
     };
-    
-    const inputStyles = "w-full bg-white/70 backdrop-blur-lg placeholder-slate-500 text-slate-900 px-4 py-3 rounded-xl border border-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500/70 transition-all duration-300 shadow-lg shadow-violet-500/5";
 
-    return (
-        <div className="lg:grid lg:grid-cols-2 animate-fade-in">
-            <AuthImage />
-            <div className="flex flex-col justify-center items-center p-4 py-16 lg:p-12 bg-gradient-to-br from-slate-50 via-violet-50 to-purple-50">
-               <div className="w-full max-w-md space-y-8">
-                   <div>
-                       <h1 className="text-4xl font-extrabold text-slate-800 leading-tight tracking-tight text-center lg:text-left">
-                           Manifest Your Dreams.
-                       </h1>
-                       <p className="mt-4 text-slate-600 text-center lg:text-left">
-                           {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-                           <button onClick={() => { setIsSignUp(!isSignUp); setError(null); setMessage(null)}} className="font-semibold text-violet-600 hover:text-violet-500 transition-colors">
-                               {isSignUp ? 'Sign In' : 'Create one'}
-                           </button>
-                       </p>
-                   </div>
-                   
-                   <div className="bg-white/50 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl shadow-violet-500/10 border border-white/60">
-                        <form onSubmit={handleAuth} className="space-y-6">
-                           {isSignUp && (
-                               <div>
-                                   <label htmlFor="full-name" className="sr-only">Full Name</label>
-                                   <input
-                                       id="full-name"
-                                       name="full-name"
-                                       type="text"
-                                       autoComplete="name"
-                                       required
-                                       value={fullName}
-                                       onChange={(e) => setFullName(e.target.value)}
-                                       className={inputStyles}
-                                       placeholder="Full Name"
-                                   />
-                               </div>
-                           )}
-                           <div>
-                               <label htmlFor="email-address" className="sr-only">Email address</label>
-                               <input
-                                   id="email-address"
-                                   name="email"
-                                   type="email"
-                                   autoComplete="email"
-                                   required
-                                   value={email}
-                                   onChange={(e) => setEmail(e.target.value)}
-                                   className={inputStyles}
-                                   placeholder="Email address"
-                               />
-                           </div>
-                           <div>
-                               <label htmlFor="password" className="sr-only">Password</label>
-                               <input
-                                   id="password"
-                                   name="password"
-                                   type="password"
-                                   autoComplete={isSignUp ? "new-password" : "current-password"}
-                                   required
-                                   minLength={6}
-                                   value={password}
-                                   onChange={(e) => setPassword(e.target.value)}
-                                   className={inputStyles}
-                                   placeholder="Password"
-                               />
-                           </div>
-                           
-                           <div>
-                               <button
-                                   type="submit"
-                                   disabled={loading}
-                                   className="group relative w-full flex justify-center items-center px-4 py-3 border border-transparent text-base font-semibold rounded-xl text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:shadow-lg hover:shadow-violet-400/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-violet-500 disabled:opacity-50 disabled:cursor-wait transition-all"
-                               >
-                                   {loading ? 'Processing...' : (isSignUp ? 'Create Account' : 'Sign In')}
-                                   {!loading && <ArrowRightIcon className="w-5 h-5 ml-auto text-violet-300 group-hover:text-white transition-colors" />}
-                               </button>
-                           </div>
-                       </form>
+    const handlePasswordReset = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        setMessage(null);
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin, // URL to redirect to after password reset
+            });
+            if (error) throw error;
+            setMessage('Password reset link sent! Please check your email.');
+        } catch (err: any) {
+             setError(err.error_description || err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    const inputStyles = "w-full bg-white/5 border border-white/20 placeholder-slate-400 text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-400/70 transition-all duration-300 shadow-lg shadow-black/10";
+
+    const renderMainForm = () => (
+        <form onSubmit={handleAuth} className="space-y-6">
+            {view === 'signup' && (
+                <>
+                    <div>
+                        <label htmlFor="full-name" className="sr-only">Full Name</label>
+                        <input id="full-name" name="full-name" type="text" autoComplete="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputStyles} placeholder="Full Name" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">I am signing up as a...</label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <button type="button" onClick={() => setRole('user')} className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-colors ${role === 'user' ? 'bg-violet-500/30 border-violet-400 text-white' : 'bg-white/5 border-white/20 text-slate-300 hover:bg-white/10'}`}>
+                                <UserCircleIcon className="w-5 h-5" />
+                                <span className="font-semibold">User</span>
+                            </button>
+                             <button type="button" onClick={() => setRole('agent')} className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-colors ${role === 'agent' ? 'bg-violet-500/30 border-violet-400 text-white' : 'bg-white/5 border-white/20 text-slate-300 hover:bg-white/10'}`}>
+                                <UsersIcon className="w-5 h-5" />
+                                <span className="font-semibold">Agent</span>
+                            </button>
+                        </div>
+                    </div>
+                </>
+            )}
+            <div>
+                <label htmlFor="email-address" className="sr-only">Email address</label>
+                <input id="email-address" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputStyles} placeholder="Email address" />
+            </div>
+            <div>
+                <label htmlFor="password" className="sr-only">Password</label>
+                <input id="password" name="password" type="password" autoComplete={view === 'signup' ? "new-password" : "current-password"} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className={inputStyles} placeholder="Password" />
+            </div>
+
+            {view === 'signin' && (
+                 <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                        <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 rounded border-slate-500 text-violet-600 bg-white/10 focus:ring-violet-500" />
+                        <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-300">Remember me</label>
                     </div>
 
-                    {error && <p className="text-center text-sm text-red-600 animate-fade-in">{error}</p>}
-                    {message && <p className="text-center text-sm text-green-600 animate-fade-in">{message}</p>}
+                    <div className="text-sm">
+                        <button type="button" onClick={() => { setView('forgot_password'); resetState(); }} className="font-medium text-violet-400 hover:text-violet-300">Forgot your password?</button>
+                    </div>
+                </div>
+            )}
+            
+            <div>
+                <Button type="submit" disabled={loading} className="w-full">
+                    <span>{loading ? 'Processing...' : (view === 'signup' ? 'Create Account' : 'Sign In')}</span>
+                    {!loading && <ArrowRightIcon className="w-5 h-5" />}
+                </Button>
+            </div>
+        </form>
+    );
 
-                   <div className="text-center">
-                       <p className="text-xs text-slate-500">
-                           By {isSignUp ? 'creating an account' : 'signing in'}, you agree to our<br/>
-                           <a href="#" className="underline hover:text-slate-800">Terms of Service</a> & <a href="#" className="underline hover:text-slate-800">Privacy Policy</a>.
+    const renderForgotPasswordForm = () => (
+        <form onSubmit={handlePasswordReset} className="space-y-6">
+            <div>
+                 <label htmlFor="email-address" className="sr-only">Email address</label>
+                <input id="email-address" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputStyles} placeholder="Enter your email address" />
+            </div>
+             <div>
+                <Button type="submit" disabled={loading} className="w-full">
+                    <span>{loading ? 'Sending...' : 'Send Reset Link'}</span>
+                    {!loading && <ArrowRightIcon className="w-5 h-5" />}
+                </Button>
+            </div>
+        </form>
+    );
+
+    return (
+        <div 
+            className="w-full flex flex-col justify-center items-center p-4 bg-cover bg-center animate-fade-in py-24 md:py-32"
+            style={{ backgroundImage: "url('https://strg21.dozendreams.com/storage/v1/object/public/assetspublic//Dozendreams%20Login%20Hero.webp')" }}
+        >
+            <div className="absolute inset-0 bg-black/50"></div>
+            <div className="relative w-full max-w-md space-y-8">
+                <div>
+                   <h1 className="text-4xl font-bold text-white tracking-tight text-center drop-shadow-lg">
+                       {view === 'forgot_password' ? 'Reset Your Password' : 'Manifest Your Dreams.'}
+                   </h1>
+                   <p className="mt-4 text-slate-300 text-center">
+                       {view === 'signin' && `Don't have an account? `}
+                       {view === 'signup' && `Already have an account? `}
+                       {view === 'forgot_password' && `Remembered your password? `}
+                       <button onClick={() => { 
+                           setView(view === 'signin' ? 'signup' : 'signin'); 
+                           resetState();
+                       }} className="font-medium text-violet-400 hover:text-violet-300 transition-colors">
+                           {view === 'signin' && 'Create one'}
+                           {view === 'signup' && 'Sign In'}
+                           {view === 'forgot_password' && 'Sign In'}
+                       </button>
+                   </p>
+                </div>
+               
+                <div className="bg-black/30 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl shadow-black/20 border border-white/10">
+                    {view === 'forgot_password' ? renderForgotPasswordForm() : renderMainForm()}
+                </div>
+
+                {error && <p className="text-center text-sm text-red-400 bg-red-900/50 py-2 px-4 rounded-lg animate-fade-in">{error}</p>}
+                {message && <p className="text-center text-sm text-green-300 bg-green-900/50 py-2 px-4 rounded-lg animate-fade-in">{message}</p>}
+
+                {view !== 'forgot_password' && (
+                    <div className="text-center">
+                       <p className="text-xs text-slate-400">
+                           By {view === 'signup' ? 'creating an account' : 'signing in'}, you agree to our<br/>
+                           <a href="#" className="underline hover:text-white">Terms of Service</a> & <a href="#" className="underline hover:text-white">Privacy Policy</a>.
                        </p>
-                   </div>
-               </div>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -1,32 +1,33 @@
-import { ListingType, ListingCategory, FeaturedLocation } from './types';
-import { CarIcon, MansionIcon, BarnIcon, YachtIcon, PlaneIcon, PlotIcon, VillaIcon, BungalowIcon, CommercialIcon, TourIcon, PartyIcon, HotelIcon, CinemaIcon } from './components/icons';
+
+import { ListingCategory, FeaturedLocation, Amenity } from './types';
+import { PoolIcon, GymIcon, WifiIcon, GarageIcon } from './components/icons';
 
 export const SALE_CATEGORIES = [
-    { id: ListingCategory.REAL_ESTATE_SALE, label: 'Real Estate', icon: MansionIcon },
-    { id: ListingCategory.VILLA_SALE, label: 'Villas', icon: VillaIcon },
-    { id: ListingCategory.FLAT_SALE, label: 'Flats', icon: BungalowIcon },
-    { id: ListingCategory.BUNGALOW_SALE, label: 'Bungalows', icon: BungalowIcon },
-    { id: ListingCategory.PENTHOUSE_SALE, label: 'Penthouses', icon: MansionIcon },
-    { id: ListingCategory.PLOT_SALE, label: 'Plots', icon: PlotIcon },
-    { id: ListingCategory.FARMLAND_SALE, label: 'Farmland', icon: PlotIcon },
-    { id: ListingCategory.FARM_HOUSE_SALE, label: 'Farm Houses', icon: BarnIcon },
-    { id: ListingCategory.COMMERCIAL_SALE, label: 'Commercial', icon: CommercialIcon },
-    { id: ListingCategory.CAR_SALE, label: 'Luxury Cars', icon: CarIcon },
-    { id: ListingCategory.YACHT_SALE, label: 'Yachts', icon: YachtIcon },
-    { id: ListingCategory.JET_SALE, label: 'Private Jets', icon: PlaneIcon },
+    { id: ListingCategory.REAL_ESTATE_SALE, label: 'Real Estate', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/IMG_4070.png' },
+    { id: ListingCategory.VILLA_SALE, label: 'Villas', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/DozenDreams_4016.webp' },
+    { id: ListingCategory.FLAT_SALE, label: 'Flats', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/DozenDreams_4021.webp' },
+    { id: ListingCategory.BUNGALOW_SALE, label: 'Bungalows', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/Dozendreams%20bungalow.webp' },
+    { id: ListingCategory.PENTHOUSE_SALE, label: 'Penthouses', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/Dozendreams%20flat.webp' },
+    { id: ListingCategory.PLOT_SALE, label: 'Plots', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/DozenDreams_4018.webp' },
+    { id: ListingCategory.FARMLAND_SALE, label: 'Farmland', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/DozenDreams_4012.webp' },
+    { id: ListingCategory.FARM_HOUSE_SALE, label: 'Farm Houses', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/DozenDreams_4014.webp' },
+    { id: ListingCategory.COMMERCIAL_SALE, label: 'Commercial', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/DozenDreams_4020.webp' },
+    { id: ListingCategory.CAR_SALE, label: 'Luxury Cars', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/DozenDreams_4013.webp' },
+    { id: ListingCategory.YACHT_SALE, label: 'Yachts', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/IMG_4067.webp' },
+    { id: ListingCategory.JET_SALE, label: 'Private Jets', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/IMG_4066.webp' },
 ];
 
 export const BOOK_CATEGORIES = [
-    { id: ListingCategory.STAY_RENTAL, label: 'Book a Stay', icon: VillaIcon },
-    { id: ListingCategory.DESTINATION_BOOK, label: 'Destinations', icon: TourIcon },
-    { id: ListingCategory.PARTY_PLACE_BOOK, label: 'Party Places', icon: PartyIcon },
-    { id: ListingCategory.BANQUET_BOOK, label: 'Banquets', icon: HotelIcon },
-    { id: ListingCategory.HOTEL_BOOK, label: 'Hotels', icon: HotelIcon },
-    { id: ListingCategory.CINEMA_BOOK, label: 'Family Cinema', icon: CinemaIcon },
-    { id: ListingCategory.TOUR_BOOK, label: 'Tours', icon: TourIcon },
-    { id: ListingCategory.FARMHOUSE_RENTAL, label: 'Book a Farmhouse', icon: BarnIcon },
-    { id: ListingCategory.CAR_RENTAL, label: 'Book a Car', icon: CarIcon },
-    { id: ListingCategory.YACHT_RENTAL, label: 'Book a Yacht', icon: YachtIcon },
+    { id: ListingCategory.STAY_RENTAL, label: 'Book a Stay', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/IMG_4049.webp' },
+    { id: ListingCategory.DESTINATION_BOOK, label: 'Destinations', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/Dozendreams%20tour.webp' },
+    { id: ListingCategory.PARTY_PLACE_BOOK, label: 'Party Places', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/Dozendreams%20partyplace.webp' },
+    { id: ListingCategory.BANQUET_BOOK, label: 'Banquets', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/DozenDreams_4015.webp' },
+    { id: ListingCategory.HOTEL_BOOK, label: 'Hotels', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/IMG_4063.webp' },
+    { id: ListingCategory.CINEMA_BOOK, label: 'Family Cinema', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/Dozendreams%20cinema.webp' },
+    { id: ListingCategory.TOUR_BOOK, label: 'Tours', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/Dozendreams%20tour.webp' },
+    { id: ListingCategory.FARMHOUSE_RENTAL, label: 'Book a Farmhouse', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/DozenDreams_4014.webp' },
+    { id: ListingCategory.CAR_RENTAL, label: 'Book a Car', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/Dozendreams%20car.webp' },
+    { id: ListingCategory.YACHT_RENTAL, label: 'Book a Yacht', imageUrl: 'https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/IMG_4067.webp' },
 ];
 
 export const RENT_CATEGORIES = BOOK_CATEGORIES; // Alias for backward compatibility
@@ -62,4 +63,11 @@ export const FEATURED_LOCATIONS: FeaturedLocation[] = [
         description: 'Timeless villas and breathtaking alpine scenery.',
         imageUrl: 'https://images.unsplash.com/photo-1528181304800-259b08848526?q=80&w=2070&auto=format&fit=crop'
     }
+];
+
+export const AMENITIES: Amenity[] = [
+    { id: 'pool', label: 'Swimming Pool', icon: PoolIcon },
+    { id: 'gym', label: 'Gym', icon: GymIcon },
+    { id: 'wifi', label: 'High-Speed WiFi', icon: WifiIcon },
+    { id: 'garage', label: 'Garage', icon: GarageIcon },
 ];

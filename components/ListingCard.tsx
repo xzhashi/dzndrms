@@ -1,7 +1,8 @@
 import React from 'react';
 import { Listing, CarListing, RealEstateListing, FarmListing, ListingType } from '../types';
-import { CarIcon, BedIcon, BathIcon, RulerIcon, AcreageIcon, LocationIcon, BookmarkIcon } from './icons';
+import { CarIcon, BedIcon, BathIcon, RulerIcon, AcreageIcon, LocationIcon, BookmarkIcon, DiamondIcon } from './icons';
 import type { Session } from '@supabase/supabase-js';
+import { Button } from './Button';
 
 interface ListingCardProps {
   listing: Listing;
@@ -12,9 +13,9 @@ interface ListingCardProps {
 }
 
 const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'INR',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(price);
@@ -83,21 +84,29 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onViewDetails
   };
   
   return (
-    <div onClick={() => onViewDetails(listing)} className="bg-white rounded-lg shadow-md overflow-hidden group transform hover:-translate-y-1 transition-transform duration-300 border border-slate-200 hover:shadow-xl cursor-pointer">
+    <div onClick={() => onViewDetails(listing)} className="bg-white/60 backdrop-blur-md rounded-lg overflow-hidden group transform hover:-translate-y-1 transition-transform duration-300 border border-white/20 hover:shadow-xl cursor-pointer shadow-lg">
       <div className="relative">
         <img className="h-56 w-full object-cover" src={listing.imageUrl} alt={listing.title} />
-        <div className="absolute top-0 right-0 m-3 bg-violet-100 text-violet-800 text-xs font-bold px-2 py-1 rounded-full uppercase">
+        <div className="absolute top-3 right-3 bg-violet-100 text-violet-800 text-xs font-bold px-2 py-1 rounded-full uppercase">
           For {listing.type === ListingType.RENT ? 'BOOK' : 'SALE'}
         </div>
-        {session && (
-            <button 
-                onClick={handleSaveClick}
-                className={`absolute top-2 left-2 p-2 bg-black/40 rounded-full text-white hover:bg-black/60 transition-all duration-200 ${isSaved ? 'text-violet-400' : 'text-white'}`}
-                aria-label={isSaved ? 'Unsave listing' : 'Save listing'}
-            >
-                <BookmarkIcon className="w-5 h-5" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} />
-            </button>
-        )}
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
+            {listing.is_featured && (
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-full shadow-lg animate-fade-in">
+                    <DiamondIcon className="w-4 h-4" />
+                    <span>Featured</span>
+                </div>
+            )}
+            {session && (
+                <button 
+                    onClick={handleSaveClick}
+                    className={`p-2 bg-black/40 rounded-full text-white hover:bg-black/60 transition-all duration-200 ${isSaved ? 'text-violet-400' : 'text-white'}`}
+                    aria-label={isSaved ? 'Unsave listing' : 'Save listing'}
+                >
+                    <BookmarkIcon className="w-5 h-5" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} />
+                </button>
+            )}
+        </div>
         <div className="absolute bottom-0 left-0 bg-gradient-to-t from-black/70 to-transparent w-full p-4">
              <h3 className="text-white text-lg font-bold truncate">{listing.title}</h3>
              <div className="flex items-center text-sm text-gray-200 mt-1">
@@ -116,12 +125,12 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onViewDetails
         <div className="h-12 flex items-center">
             <CardDetails listing={listing} />
         </div>
-        <button
-            type="button"
+        <Button
+            variant="secondary"
             onClick={(e) => { e.stopPropagation(); onViewDetails(listing);}}
-            className="mt-4 w-full bg-slate-100 text-slate-700 font-semibold py-2 px-4 rounded-md group-hover:bg-violet-600 group-hover:text-white transition-all duration-300 border border-slate-200 group-hover:border-violet-600">
+            className="mt-4 w-full">
             View Details
-        </button>
+        </Button>
       </div>
     </div>
   );

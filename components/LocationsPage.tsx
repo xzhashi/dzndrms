@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { FEATURED_LOCATIONS } from '../constants';
 import { ArrowRightIcon } from './icons/ArrowRightIcon';
@@ -10,7 +9,7 @@ interface LocationsPageProps {
 
 export const LocationsPage: React.FC<LocationsPageProps> = ({ onSelectLocation }) => {
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in pt-24">
       <div className="bg-white text-center py-20 px-4 shadow-sm border-b border-slate-200">
         <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">Iconic Destinations</h1>
         <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-slate-600">

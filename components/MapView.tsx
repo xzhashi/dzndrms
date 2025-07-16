@@ -10,9 +10,9 @@ interface MapViewProps {
   onViewDetails: (listing: Listing) => void;
 }
 
-// Custom violet diamond icon for markers
+// Custom violet diamond icon for markers with a glow effect
 const customIcon = new L.DivIcon({
-  html: `<div class="p-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-violet-600 drop-shadow-lg"><path d="M12.0001 1.60669L22.3935 6.80312L12.0001 22.3935L1.60669 6.80312L12.0001 1.60669ZM12.0001 4.63384L5.41443 8.30312L12.0001 18.3663L18.5859 8.30312L12.0001 4.63384Z"></path></svg></div>`,
+  html: `<div class="p-1" style="filter: drop-shadow(0 3px 8px rgba(124, 58, 237, 0.5));"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-violet-500"><path d="M12.0001 1.60669L22.3935 6.80312L12.0001 22.3935L1.60669 6.80312L12.0001 1.60669ZM12.0001 4.63384L5.41443 8.30312L12.0001 18.3663L18.5859 8.30312L12.0001 4.63384Z"></path></svg></div>`,
   className: '',
   iconSize: [32, 32],
   iconAnchor: [16, 32],
@@ -20,9 +20,9 @@ const customIcon = new L.DivIcon({
 });
 
 const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'INR',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(price);
@@ -42,12 +42,12 @@ const MapPopupContent: React.FC<{ listing: Listing; onViewDetails: (l: Listing) 
   <div className="w-64">
     <img src={listing.imageUrl} alt={listing.title} className="w-full h-32 object-cover rounded-t-lg" />
     <div className="p-3">
-        <h3 className="font-bold text-slate-800 text-md truncate">{listing.title}</h3>
-        <p className="text-sm text-slate-500 truncate">{listing.location}</p>
+        <h3 className="font-bold text-slate-50 text-md truncate">{listing.title}</h3>
+        <p className="text-sm text-slate-400 truncate">{listing.location}</p>
         <div className="flex justify-between items-center mt-2">
-            <p className="text-lg font-bold text-slate-900">
+            <p className="text-lg font-bold text-white">
                 {formatPrice(listing.price)}
-                <span className="text-xs font-normal text-slate-500">{getPriceSuffix(listing)}</span>
+                <span className="text-xs font-normal text-slate-400">{getPriceSuffix(listing)}</span>
             </p>
             <button
                 onClick={() => onViewDetails(listing)}
@@ -77,18 +77,18 @@ const MapBoundsUpdater: React.FC<{ listings: Listing[] }> = ({ listings }) => {
 export const MapView: React.FC<MapViewProps> = ({ listings, isLoading, onViewDetails }) => {
     if (isLoading) {
         return (
-            <div className="h-[70vh] bg-slate-200 rounded-lg animate-pulse flex items-center justify-center">
-                <p className="text-slate-500">Loading Map...</p>
+            <div className="h-[70vh] bg-slate-800 rounded-lg animate-pulse flex items-center justify-center">
+                <p className="text-slate-400">Loading Map...</p>
             </div>
         );
     }
     
     return (
-        <div className="h-[70vh] bg-slate-200 rounded-lg overflow-hidden shadow-lg border border-slate-200">
+        <div className="h-[70vh] bg-slate-900 rounded-lg overflow-hidden shadow-lg border border-slate-700">
             <MapContainer center={[39.8283, -98.5795]} zoom={4} scrollWheelZoom={true} className="h-full w-full">
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                 />
                 <MapBoundsUpdater listings={listings} />
                 {listings.map(listing => (

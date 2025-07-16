@@ -1,28 +1,70 @@
+
+
 import React, { useState, useRef, useEffect } from 'react';
-import { FiltersState, ListingType, ListingCategory } from '../types';
+import { FiltersState, ListingType, ListingCategory, GeocodeResponse, LocationSuggestion } from '../types';
 import { SALE_CATEGORIES, BOOK_CATEGORIES } from '../constants';
+import { ArrowRightIcon } from './icons';
+import { Button } from './Button';
+import { searchLocations } from '../services/locationService';
 
 interface HeroProps {
     listingType: ListingType;
     setFilters: React.Dispatch<React.SetStateAction<FiltersState>>;
+    userLocation: GeocodeResponse | null;
 }
 
-export const Hero: React.FC<HeroProps> = ({ listingType, setFilters }) => {
+const useDebounce = (value: string, delay: number) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+    return debouncedValue;
+};
+
+export const Hero: React.FC<HeroProps> = ({ listingType, setFilters, userLocation }) => {
     const [localCategory, setLocalCategory] = useState<ListingCategory | ''>('');
     const [localLocation, setLocalLocation] = useState('');
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+    const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+    const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+    
+    const categoryDropdownRef = useRef<HTMLDivElement>(null);
+    const locationInputRef = useRef<HTMLDivElement>(null);
+    const debouncedLocation = useDebounce(localLocation, 300);
+
+    useEffect(() => {
+        if (debouncedLocation && isSuggestionsOpen) {
+            searchLocations(debouncedLocation).then(setSuggestions);
+        } else {
+            setSuggestions([]);
+        }
+    }, [debouncedLocation, isSuggestionsOpen]);
+    
+    // Effect to set initial location from props
+    useEffect(() => {
+        if (userLocation && userLocation.city && localLocation === '') {
+            setLocalLocation(`${userLocation.city}, ${userLocation.state}`);
+        }
+    }, [userLocation, localLocation]);
 
     // Close dropdown on outside click
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsDropdownOpen(false);
+            if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+                setIsCategoryDropdownOpen(false);
+            }
+            if (locationInputRef.current && !locationInputRef.current.contains(event.target as Node)) {
+                setIsSuggestionsOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [dropdownRef]);
+    }, []);
 
 
     const handleTypeChange = (type: ListingType) => {
@@ -37,6 +79,12 @@ export const Hero: React.FC<HeroProps> = ({ listingType, setFilters }) => {
             location: localLocation,
         }));
     };
+
+    const handleSuggestionClick = (suggestion: LocationSuggestion) => {
+        setLocalLocation(suggestion.display_name);
+        setSuggestions([]);
+        setIsSuggestionsOpen(false);
+    };
     
     const handlePopularSearch = (category: ListingCategory) => {
          setFilters(prev => ({
@@ -49,7 +97,7 @@ export const Hero: React.FC<HeroProps> = ({ listingType, setFilters }) => {
 
     const saleIsActive = listingType === ListingType.SALE;
     const categories = saleIsActive ? SALE_CATEGORIES : BOOK_CATEGORIES;
-    const selectedCategoryLabel = categories.find(c => c.id === localCategory)?.label || 'Select Property Type';
+    const selectedCategoryLabel = categories.find(c => c.id === localCategory)?.label || 'Select Category';
 
     const activeBtnClasses = "border-b-2 border-white text-white";
     const inactiveBtnClasses = "border-b-2 border-transparent text-slate-300 hover:text-white";
@@ -57,11 +105,12 @@ export const Hero: React.FC<HeroProps> = ({ listingType, setFilters }) => {
     return (
         <div 
             className="relative bg-cover bg-center text-white" 
-            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop')" }}
+            style={{ backgroundImage: "url('https://strg21.dozendreams.com/storage/v1/object/public/assetspublic//DozenDreams%20Hero.webp')" }}
         >
             <div className="absolute inset-0 bg-black/60"></div>
-            <div className="relative container mx-auto text-center px-4 py-20 sm:py-32">
-                <h1 className="text-4xl md:text-5xl font-bold tracking-tight drop-shadow-lg">
+            <div className="relative container mx-auto text-center px-4 py-16 sm:py-32">
+                <img src="https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/DozenDreams%20Logo%20white.png" alt="Dozen Dreams Logo" className="h-12 w-auto mx-auto mb-4" />
+                <h1 className="text-4xl md:text-5xl font-medium tracking-tight drop-shadow-lg">
                     Your Dozen Dreams Begin Here.
                 </h1>
                 <p className="mt-4 max-w-2xl mx-auto text-lg text-slate-200 drop-shadow-md font-light">
@@ -69,7 +118,7 @@ export const Hero: React.FC<HeroProps> = ({ listingType, setFilters }) => {
                 </p>
                 
                 <div className="mt-10 max-w-4xl mx-auto">
-                    <div className="bg-black/20 backdrop-blur-xl rounded-xl shadow-2xl shadow-black/20 ring-1 ring-white/10 p-2">
+                    <div className="bg-white/20 backdrop-blur-lg rounded-xl shadow-2xl shadow-black/20 ring-1 ring-white/10 p-2">
                         <div className="flex px-2 pt-1">
                             <button
                                 onClick={() => handleTypeChange(ListingType.SALE)}
@@ -86,26 +135,27 @@ export const Hero: React.FC<HeroProps> = ({ listingType, setFilters }) => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-x-2 p-2 items-center">
                            <div className="md:col-span-4 border-r-0 md:border-r border-white/10 pr-0 md:pr-2">
-                                <div className="relative" ref={dropdownRef}>
-                                    <label htmlFor="property-type" className="block text-xs font-semibold text-slate-300 text-left">Property Type</label>
+                                <div className="relative" ref={categoryDropdownRef}>
+                                    <label htmlFor="property-type" className="block text-xs font-semibold text-slate-300 text-left">Category</label>
                                     <button 
                                         type="button"
-                                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                        onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
                                         className="w-full text-left bg-transparent border-none text-sm text-white p-0 focus:ring-0 font-medium flex justify-between items-center">
                                         <span>{selectedCategoryLabel}</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
                                           <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                                         </svg>
                                     </button>
-                                    {isDropdownOpen && (
-                                        <div className="absolute z-10 top-full mt-2 w-full bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 animate-fade-in-up">
-                                            <div className="py-1">
+                                    {isCategoryDropdownOpen && (
+                                        <div className="absolute z-20 top-full mt-2 w-full bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 animate-fade-in-up">
+                                            <div className="py-1 max-h-60 overflow-y-auto">
                                                 {categories.map(cat => (
                                                     <button
                                                         key={cat.id}
+                                                        type="button"
                                                         onClick={() => {
                                                             setLocalCategory(cat.id);
-                                                            setIsDropdownOpen(false);
+                                                            setIsCategoryDropdownOpen(false);
                                                         }}
                                                         className="text-left w-full px-4 py-2 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700"
                                                     >
@@ -117,25 +167,43 @@ export const Hero: React.FC<HeroProps> = ({ listingType, setFilters }) => {
                                     )}
                                 </div>
                            </div>
-                           <div className="md:col-span-4 mt-4 md:mt-0 border-r-0 md:border-r border-white/10 pr-0 md:pr-2">
+                           <div ref={locationInputRef} className="md:col-span-4 mt-4 md:mt-0 border-r-0 md:border-r border-white/10 pr-0 md:pr-2 relative">
                                 <label htmlFor="location" className="block text-xs font-semibold text-slate-300 text-left">Location</label>
                                 <input 
                                     type="text"
                                     id="location"
                                     value={localLocation}
-                                    onChange={e => setLocalLocation(e.target.value)}
+                                    onChange={(e) => {setLocalLocation(e.target.value); setIsSuggestionsOpen(true);}}
                                     placeholder="e.g. Los Angeles, Dubai"
                                     className="w-full bg-transparent border-none p-0 focus:ring-0 text-sm placeholder:text-slate-400 font-medium text-white"
+                                    autoComplete="off"
                                 />
+                                {isSuggestionsOpen && suggestions.length > 0 && (
+                                    <div className="absolute z-20 top-full mt-2 w-full bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 animate-fade-in-up">
+                                        <div className="py-1 max-h-60 overflow-y-auto">
+                                            {suggestions.map((s) => (
+                                                <button
+                                                    key={s.place_id}
+                                                    type="button"
+                                                    onClick={() => handleSuggestionClick(s)}
+                                                    className="text-left w-full px-4 py-2 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700"
+                                                >
+                                                    {s.display_name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                            </div>
                            <div className="md:col-span-4 mt-4 md:mt-0 grid grid-cols-2 gap-2">
                                <div className="col-span-2">
-                                    <button
+                                    <Button
                                         onClick={handleSearch}
-                                        className="w-full animated-gradient-button text-white font-semibold py-3 px-4 transition-all text-sm"
+                                        className="w-full text-base"
                                     >
-                                        Search
-                                    </button>
+                                        <span>Search</span>
+                                        <ArrowRightIcon className="w-5 h-5" />
+                                    </Button>
                                </div>
                            </div>
                         </div>

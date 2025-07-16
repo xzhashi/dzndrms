@@ -24,8 +24,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
       role="dialog"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-scale-in">
-        <div className="flex justify-between items-center p-4 border-b border-slate-200 flex-shrink-0">
+      <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-scale-in border border-white/20">
+        <div className="flex justify-between items-center p-4 border-b border-slate-200/60 flex-shrink-0">
           <h2 className="text-xl font-semibold text-slate-800">{title}</h2>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-800 transition-colors">
             <XCircleIcon className="w-7 h-7" />

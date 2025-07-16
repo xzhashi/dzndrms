@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FiltersState, GeocodeResponse } from '../types';
-import { CrosshairIcon } from './icons';
+import { FiltersState, GeocodeResponse, LocationSuggestion } from '../types';
+import { CrosshairIcon, ArrowRightIcon } from './icons';
+import { Button } from './Button';
+import { searchLocations } from '../services/locationService';
 
 interface FilterSidebarProps {
   filters: FiltersState;
@@ -8,6 +10,19 @@ interface FilterSidebarProps {
   onClose: () => void;
   userLocation: GeocodeResponse | null;
 }
+
+const useDebounce = (value: string, delay: number) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+    return debouncedValue;
+};
 
 const bedroomOptions = [
     { label: 'Any', value: undefined },
@@ -20,10 +35,20 @@ const bedroomOptions = [
 
 export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilters, onClose, userLocation }) => {
   const [localFilters, setLocalFilters] = useState(filters);
-  
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const debouncedLocation = useDebounce(localFilters.location, 300);
+
   useEffect(() => {
     setLocalFilters(filters);
   }, [filters]);
+  
+  useEffect(() => {
+    if (debouncedLocation) {
+        searchLocations(debouncedLocation).then(setSuggestions);
+    } else {
+        setSuggestions([]);
+    }
+  }, [debouncedLocation]);
 
   const handleUseMyLocation = () => {
     if (userLocation) {
@@ -44,6 +69,11 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
   const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalFilters(prev => ({...prev, location: e.target.value}));
   };
+  
+  const handleSuggestionClick = (suggestion: LocationSuggestion) => {
+    setLocalFilters(prev => ({...prev, location: suggestion.display_name}));
+    setSuggestions([]);
+  };
 
   const handleApplyFilters = () => {
     setFilters(localFilters);
@@ -61,15 +91,16 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
   };
 
   const formatPrice = (value: number) => {
-    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
-    return `$${value}`;
+    if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)} Cr`;
+    if (value >= 100000) return `₹${(value / 100000).toFixed(1)} L`;
+    if (value >= 1000) return `₹${(value / 1000).toFixed(0)}k`;
+    return `₹${value}`;
   }
 
   return (
     <div className="space-y-8">
       {/* Location */}
-      <div>
+      <div className="relative">
         <h4 className="text-md font-medium text-slate-700 mb-3">Location</h4>
         <input
             type="text"
@@ -77,7 +108,21 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
             onChange={handleLocationChange}
             placeholder="e.g. Beverly Hills, Monaco..."
             className="w-full bg-slate-100 border border-slate-300 rounded-md p-3 text-sm text-slate-800 focus:ring-violet-500 focus:border-violet-500 transition"
+            autoComplete="off"
         />
+        {suggestions.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-slate-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                {suggestions.map(s => (
+                    <button 
+                        key={s.place_id} 
+                        onClick={() => handleSuggestionClick(s)}
+                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-violet-50"
+                    >
+                        {s.display_name}
+                    </button>
+                ))}
+            </div>
+        )}
         {userLocation && (
             <button 
                 type="button" 
@@ -94,7 +139,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
       <div>
         <h4 className="text-md font-medium text-slate-700 mb-3">Max Price</h4>
         <div className="flex justify-between items-center text-sm text-slate-500 mb-2">
-            <span>$0</span>
+            <span>₹0</span>
             <span className="font-semibold text-slate-800 bg-slate-200 px-2 py-1 rounded-md">{formatPrice(localFilters.priceRange[1])}</span>
         </div>
         <input
@@ -129,9 +174,10 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, setFilter
         <button onClick={handleClearFilters} className="text-sm font-semibold text-slate-600 hover:text-slate-900 underline transition-colors">
             Clear all
         </button>
-        <button onClick={handleApplyFilters} className="bg-gradient-to-r from-slate-800 to-slate-900 text-white font-semibold py-3 px-6 rounded-md hover:shadow-lg hover:shadow-slate-800/30 transition-all">
-            Show results
-        </button>
+        <Button onClick={handleApplyFilters}>
+            <span>Show results</span>
+            <ArrowRightIcon className="w-5 h-5"/>
+        </Button>
       </div>
 
     </div>

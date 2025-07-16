@@ -1,5 +1,4 @@
 import React from 'react';
-import { DiamondIcon } from './icons';
 import { Page } from '../types';
 
 interface FooterProps {
@@ -14,9 +13,8 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
-             <button onClick={() => onNavigate('listings')} className="flex items-center space-x-3">
-              <DiamondIcon className="h-8 w-8 text-violet-600" />
-              <span className="text-2xl font-semibold text-slate-900 tracking-wider">Dozen Dreams</span>
+             <button onClick={() => onNavigate('listings')} className="flex items-center">
+              <img src="https://strg21.dozendreams.com/storage/v1/object/public/assetspublic/Categoryicons/DozenDreams%20Logo%20black.png" alt="Dozen Dreams Logo" className="h-10 w-auto" />
             </button>
             <p className="mt-4 text-slate-500 text-sm">
                 The premier destination for the world's most desirable properties and vehicles.
